@@ -100,7 +100,7 @@ def main(args):
         optimizer.optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
 
 
-    with ProcessPoolExecutor(max_workers=12) as executor:
+    with ProcessPoolExecutor(max_workers=1) as executor:
         q = queue.Queue(maxsize=3)
         p = queue.Queue(maxsize=3)
         for i in range(3):
