@@ -108,7 +108,7 @@ a checkpoint to evaluate.
 
 ---
 
-## Evaluation
+## Evaluation (built-in)
 
 After training, evaluate the best checkpoint:
 ```bash
