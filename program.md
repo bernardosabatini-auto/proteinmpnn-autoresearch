@@ -49,7 +49,7 @@ Surface residues (~35% recovery) are most limited. Scaling both together attacks
 
 ## Training command
 ```bash
-timeout 1800 python training/training.py \
+TORCHDYNAMO_DISABLE=1 timeout 7200 python training/training.py \
   --path_for_training_data ~/pdb_data/processed_3p5 \
   --path_for_outputs ~/pdb_data/<exp_name> \
   --num_epochs 200 \
@@ -68,7 +68,7 @@ timeout 1800 python training/training.py \
   > run.log 2>&1
 ```
 
-`timeout 1800` enforces the 30-minute budget. Change flags as needed per experiment.
+`timeout 7200` enforces the 30-minute budget. Change flags as needed per experiment.
 
 ---
 
@@ -103,7 +103,7 @@ grep "valid_acc" run.log
 
 #### Step 0: Warm OS file cache (every session, before baseline)
 \```bash
-timeout 600 python training/training.py \
+timeout 1200 python training/training.py \
   --path_for_training_data ~/pdb_data/processed_3p5 \
   --path_for_outputs ~/pdb_data/warmup \
   --num_epochs 1 \
@@ -121,7 +121,7 @@ All subsequent runs including baseline start from warm cache and are fairly comp
 1. git checkout -b autoresearch/$(date +%Y%m%d-%H%M%S)
 2. Confirm data: ls ~/pdb_data/processed_3p5_3p5/ | head -5
 3. Run baseline (30 min):
-     timeout 1800 python training/training.py \
+     TORCHDYNAMO_DISABLE=1 timeout 7200 python training/training.py \
        --path_for_training_data ~/pdb_data/processed_3p5 \
        --path_for_outputs ~/pdb_data/baseline \
        --hidden_dim 128 --num_neighbors 48 \
@@ -143,7 +143,7 @@ LOOP:
   1. THINK — review results.tsv. Write one-line hypothesis.
 
   2. RUN:
-     timeout 1800 python training/training.py \
+     TORCHDYNAMO_DISABLE=1 timeout 7200 python training/training.py \
        --path_for_training_data ~/pdb_data/processed_3p5 \
        --path_for_outputs ~/pdb_data/<exp_name> \
        --save_model_every_n_epochs 1 \
