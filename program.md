@@ -53,7 +53,7 @@ timeout 1800 python training/training.py \
   --path_for_training_data ~/pdb_data/pdb_2021aug02 \
   --path_for_outputs ~/pdb_data/<exp_name> \
   --num_epochs 200 \
-  --num_examples_per_epoch 1000000 \
+  --num_examples_per_epoch 50000 \
   --batch_size 10000 \
   --hidden_dim 128 \
   --num_encoder_layers 3 \
@@ -63,6 +63,7 @@ timeout 1800 python training/training.py \
   --mixed_precision True \
   --dropout 0.1 \
   --save_model_every_n_epochs 1 \
+  --reload_data_every_n_epochs 200 \
   > run.log 2>&1
 ```
 
@@ -111,6 +112,7 @@ grep "valid_acc" run.log
        --num_encoder_layers 3 --num_decoder_layers 3 \
        --batch_size 10000 --mixed_precision True \
        --save_model_every_n_epochs 1 \
+  --reload_data_every_n_epochs 200 \
        > run.log 2>&1
 4. Record baseline valid_acc.
 5. Create results.tsv (do NOT commit):
@@ -128,6 +130,7 @@ LOOP:
        --path_for_training_data ~/pdb_data/pdb_2021aug02 \
        --path_for_outputs ~/pdb_data/<exp_name> \
        --save_model_every_n_epochs 1 \
+  --reload_data_every_n_epochs 200 \
        --mixed_precision True \
        [one changed flag] \
        > run.log 2>&1
