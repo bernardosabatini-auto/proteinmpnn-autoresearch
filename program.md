@@ -62,6 +62,7 @@ timeout 1800 python training/training.py \
   --backbone_noise 0.2 \
   --mixed_precision True \
   --dropout 0.1 \
+  --rescut 2.0 \
   --save_model_every_n_epochs 1 \
   --reload_data_every_n_epochs 200 \
   > run.log 2>&1
@@ -100,8 +101,23 @@ grep "valid_acc" run.log
 
 ## Experiment loop
 
-### Setup (once per session)
-```
+#### Step 0: Warm OS file cache (every session, before baseline)
+\```bash
+timeout 600 python training/training.py \
+  --path_for_training_data ~/pdb_data/pdb_2021aug02 \
+  --path_for_outputs ~/pdb_data/warmup \
+  --num_epochs 1 \
+  --num_examples_per_epoch 50000 \
+  --rescut 2.0 \
+  > /dev/null 2>&1
+echo "Cache warmed."
+\```
+This run is discarded. Do not record in results.tsv.
+All subsequent runs including baseline start from warm cache and are fairly compared.
+
+#### Steps 1-6:
+\```
+
 1. git checkout -b autoresearch/$(date +%Y%m%d-%H%M%S)
 2. Confirm data: ls ~/pdb_data/pdb_2021aug02/ | head -5
 3. Run baseline (30 min):
@@ -111,8 +127,9 @@ grep "valid_acc" run.log
        --hidden_dim 128 --num_neighbors 48 \
        --num_encoder_layers 3 --num_decoder_layers 3 \
        --batch_size 10000 --mixed_precision True \
+       --rescut 2.0 \
        --save_model_every_n_epochs 1 \
-  --reload_data_every_n_epochs 200 \
+       --reload_data_every_n_epochs 200 \
        > run.log 2>&1
 4. Record baseline valid_acc.
 5. Create results.tsv (do NOT commit):
@@ -130,8 +147,9 @@ LOOP:
        --path_for_training_data ~/pdb_data/pdb_2021aug02 \
        --path_for_outputs ~/pdb_data/<exp_name> \
        --save_model_every_n_epochs 1 \
-  --reload_data_every_n_epochs 200 \
+       --reload_data_every_n_epochs 200 \
        --mixed_precision True \
+       --rescut 2.0 \
        [one changed flag] \
        > run.log 2>&1
 
@@ -178,5 +196,6 @@ Commit RESULTS.md at session end.
 --dropout 0.1
 --mixed_precision True
 --batch_size 10000
+--rescut 2.0
 Published valid_acc: 0.524
 ```
