@@ -50,7 +50,7 @@ Surface residues (~35% recovery) are most limited. Scaling both together attacks
 ## Training command
 ```bash
 timeout 1800 python training/training.py \
-  --path_for_training_data ~/pdb_data/processed \
+  --path_for_training_data ~/pdb_data/processed_3p5 \
   --path_for_outputs ~/pdb_data/<exp_name> \
   --num_epochs 200 \
   --num_examples_per_epoch 50000 \
@@ -104,7 +104,7 @@ grep "valid_acc" run.log
 #### Step 0: Warm OS file cache (every session, before baseline)
 \```bash
 timeout 600 python training/training.py \
-  --path_for_training_data ~/pdb_data/processed \
+  --path_for_training_data ~/pdb_data/processed_3p5 \
   --path_for_outputs ~/pdb_data/warmup \
   --num_epochs 1 \
   --num_examples_per_epoch 50000 \
@@ -119,10 +119,10 @@ All subsequent runs including baseline start from warm cache and are fairly comp
 \```
 
 1. git checkout -b autoresearch/$(date +%Y%m%d-%H%M%S)
-2. Confirm data: ls ~/pdb_data/processed/ | head -5
+2. Confirm data: ls ~/pdb_data/processed_3p5_3p5/ | head -5
 3. Run baseline (30 min):
      timeout 1800 python training/training.py \
-       --path_for_training_data ~/pdb_data/processed \
+       --path_for_training_data ~/pdb_data/processed_3p5 \
        --path_for_outputs ~/pdb_data/baseline \
        --hidden_dim 128 --num_neighbors 48 \
        --num_encoder_layers 3 --num_decoder_layers 3 \
@@ -144,7 +144,7 @@ LOOP:
 
   2. RUN:
      timeout 1800 python training/training.py \
-       --path_for_training_data ~/pdb_data/processed \
+       --path_for_training_data ~/pdb_data/processed_3p5 \
        --path_for_outputs ~/pdb_data/<exp_name> \
        --save_model_every_n_epochs 1 \
        --reload_data_every_n_epochs 200 \
