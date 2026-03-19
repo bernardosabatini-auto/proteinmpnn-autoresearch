@@ -2,9 +2,9 @@
 
 You are an autonomous ML research agent. Your goal is to improve ProteinMPNN's sequence
 recovery on the standard benchmark by systematically exploring larger model capacity combined
-with richer neighbor context. You work in a tight experiment loop: propose a change, implement
-it, train for a fixed 30-minute budget, evaluate sequence recovery on the held-out test set,
-keep or revert, and repeat — without human involvement.
+with richer neighbor context. You work in a tight experiment loop: propose a change, run
+training with different flags for 30 minutes, evaluate sequence recovery, keep or revert,
+and repeat — without human involvement.
 
 ---
 
@@ -20,31 +20,24 @@ keep or revert, and repeat — without human involvement.
 | OS | Ubuntu 24, ARM64 |
 
 ### Key implications
-- **No VRAM limit** — 128 GB unified memory means you can run much larger models than
-  the original ProteinMPNN paper. The original hidden_dim=128 model uses only ~4 GB.
+- **No VRAM limit** — 128 GB unified memory. Original hidden_dim=128 uses ~4 GB.
   You have headroom for hidden_dim=256, 512, or larger.
-- **BF16 preferred** — always use BF16 for training. FP32 wastes memory bandwidth.
-- **Use SDPA** — use `torch.nn.functional.scaled_dot_product_attention` for any attention
-  operations. Do NOT use flash_attn (incompatible with this platform).
-- **torch.compile** — available and beneficial. Use `mode="reduce-overhead"`.
-- **Memory bandwidth is the bottleneck** — larger models improve arithmetic intensity
-  and make better use of available compute.
+- **BF16** — mixed_precision=True is already in the training script. Always use it.
+- **Memory bandwidth is the bottleneck** — larger models improve arithmetic intensity.
+- **Stay under 100 GB peak memory** — system OOM freezes the whole machine.
 
 ---
 
 ## Objective
 
-Maximize **sequence recovery (%)** on the standard ProteinMPNN test set of 402 monomers,
+Maximize **sequence recovery (%)** on the standard ProteinMPNN test set,
 within a **fixed 30-minute wall-clock training budget** per experiment.
 
-The baseline to beat: **52.4%** sequence recovery (original ProteinMPNN paper,
-hidden_dim=128, k_neighbors=48, 3 encoder + 3 decoder layers).
+Baseline to beat: **52.4%** (hidden_dim=128, num_neighbors=48, 3+3 layers).
 
 Sequence recovery = fraction of native amino acid identities correctly predicted
-when redesigning sequences on native backbone structures.
-
-This metric is objective and non-gameable — it is computed on a fixed held-out test
-set using greedy decoding at temperature T=0.1.
+when redesigning sequences on native backbone structures. Higher is better.
+Objective and non-gameable.
 
 ---
 
@@ -52,56 +45,89 @@ set using greedy decoding at temperature T=0.1.
 
 **Larger model capacity + more neighbors = better sequence recovery.**
 
-The original model is capacity-limited: hidden_dim=128 cannot fully exploit the
-geometric context from 48 neighbors. Surface residues (hardest to recover, ~35%
-recovery) are particularly limited by sparse local context. Increasing both model
-size and neighbor count should improve recovery, especially on surface residues.
-
-### Primary variables to explore (in priority order)
-
-1. **k_neighbors** — number of nearest neighbors in the protein graph
-   - Baseline: 48
-   - Try: 64, 96, 128
-   - Rationale: more structural context per residue, especially beneficial for
-     surface residues and interface regions
-
-2. **hidden_dim** — node and edge feature dimensionality
-   - Baseline: 128
-   - Try: 256, 384, 512
-   - Rationale: larger hidden dim can represent richer geometric relationships;
-     128 is very small for a modern graph neural network
-
-3. **num_encoder_layers / num_decoder_layers** — network depth
-   - Baseline: 3 encoder + 3 decoder
-   - Try: 4+4, 5+5, 6+6
-   - Rationale: deeper networks can learn longer-range structural dependencies
-
-4. **Combined scaling** — after identifying best individual settings, try
-   combining them (e.g. hidden_dim=256 + k=64 + depth=4+4)
-
-### What NOT to explore yet
-- Do not change the loss function
-- Do not change the data augmentation (backbone noise)
-- Do not change the optimizer type (Adam is fine)
-- Do not explore attention mechanisms — focus on the graph network scaling first
-- Do not change the dataset or test set
+The original model is capacity-limited: hidden_dim=128 cannot fully exploit
+geometric context from 48 neighbors. Surface residues (~35% recovery) are most
+limited by sparse local context. Increasing both model size and neighbor count
+should improve recovery, especially on surface residues.
 
 ---
 
-## Repository structure
-```
-ProteinMPNN/
-├── training/
-│   ├── train.py          ← PRIMARY FILE YOU MODIFY
-│   └── README.md
-├── protein_mpnn_utils.py ← Core model definition, may modify
-├── eval/
-│   └── eval_sequence_recovery.py  ← DO NOT MODIFY
-└── program.md            ← This file
+## Key training flags
+
+All experiments are run by changing command-line flags — no source code editing needed.
+```bash
+python training/training.py \
+  --path_for_training_data ~/pdb_data/pdb_2021aug02 \
+  --path_for_outputs ~/pdb_data/<experiment_name> \
+  --num_epochs 200 \
+  --num_examples_per_epoch 1000000 \
+  --batch_size 10000 \
+  --hidden_dim 128 \          # ← VARY THIS
+  --num_encoder_layers 3 \    # ← VARY THIS
+  --num_decoder_layers 3 \    # ← VARY THIS
+  --num_neighbors 48 \        # ← VARY THIS
+  --backbone_noise 0.2 \
+  --mixed_precision True \
+  --dropout 0.1
 ```
 
-**You may modify:** `training/train.py`, `protein_mpnn_utils.py`
-**Do not modify:** `eval/eval_sequence_recovery.py`, the test set
+### Primary variables (explore in this order)
+
+| Variable | Baseline | Try |
+|---|---|---|
+| `--num_neighbors` | 48 | 64, 96, 128 |
+| `--hidden_dim` | 128 | 256, 384, 512 |
+| `--num_encoder_layers` | 3 | 4, 5, 6 |
+| `--num_decoder_layers` | 3 | 4, 5, 6 |
+
+Explore ONE variable at a time. After identifying best individual values,
+try combining them (e.g. hidden_dim=256 + num_neighbors=64 + layers=4+4).
+
+### What NOT to explore yet
+- Do not change backbone_noise, dropout, or loss function
+- Do not change the optimizer
+- Do not change the dataset or test set
+- Stay focused on the scaling hypothesis
+
+---
+
+## Time budget enforcement
+
+The training script does not have a built-in time limit. Enforce 30 minutes with timeout:
+```bash
+timeout 1800 python training/training.py \
+  --path_for_training_data ~/pdb_data/pdb_2021aug02 \
+  --path_for_outputs ~/pdb_data/<experiment_name> \
+  [flags] \
+  > run.log 2>&1
+```
+
+`timeout 1800` sends SIGTERM after 30 minutes. The script saves checkpoints
+every `--save_model_every_n_epochs` epochs — set this to 1 to always have
+a checkpoint to evaluate.
+
+---
+
+## Evaluation
+
+After training, evaluate the best checkpoint:
+```bash
+python protein_mpnn_run.py \
+  --path_to_model_weights ~/pdb_data/<experiment_name> \
+  --model_name <latest_checkpoint> \
+  --pdb_path eval/test_pdbs/ \
+  --out_folder ~/pdb_data/<experiment_name>/eval_results \
+  --num_seq_per_target 1 \
+  --sampling_temp "0.1" \
+  --score_only 1
+```
+
+Then extract mean sequence recovery:
+```bash
+grep "seq_recovery" ~/pdb_data/<experiment_name>/eval_results/seqs/*.fa | \
+  awk -F'seq_recovery=' '{print $2}' | \
+  awk -F',' '{sum+=$1; n++} END {print "mean_seq_recovery:", sum/n}'
+```
 
 ---
 
@@ -110,72 +136,54 @@ ProteinMPNN/
 ### Setup (once per session)
 ```
 1. git checkout -b autoresearch/$(date +%Y%m%d-%H%M%S)
-2. Read protein_mpnn_utils.py — understand ProteinMPNN class parameters:
-   hidden_dim, num_encoder_layers, num_decoder_layers, k_neighbors, augment_eps
-3. Read training/train.py — understand training loop, optimizer, LR schedule
-4. Run baseline evaluation:
-     python eval/eval_sequence_recovery.py --model_path pretrained/v_48_020.pt
-   Record baseline. Should be ~52.4%.
+2. Confirm training data exists: ls ~/pdb_data/pdb_2021aug02/ | head
+3. Run baseline (30 min) to establish fair comparison:
+     timeout 1800 python training/training.py \
+       --path_for_training_data ~/pdb_data/pdb_2021aug02 \
+       --path_for_outputs ~/pdb_data/baseline \
+       --hidden_dim 128 --num_neighbors 48 \
+       --num_encoder_layers 3 --num_decoder_layers 3 \
+       --batch_size 10000 --mixed_precision True \
+       --save_model_every_n_epochs 1 \
+       > run.log 2>&1
+4. Evaluate baseline. Record seq_recovery.
 5. Initialize results.tsv (do NOT commit):
-     echo -e "experiment\tseq_recovery\tpeak_mem_mb\tnotes" > results.tsv
-6. Confirm data paths. Await go signal.
+     echo -e "experiment\tseq_recovery\tnotes" > results.tsv
+6. Await go signal.
 ```
 
 ### Per-experiment loop
 ```
 LOOP:
   1. THINK — review results.tsv and git log.
-     Write a one-line hypothesis before touching any code.
+     Write a one-line hypothesis before running anything.
+     Example: "num_neighbors=64 should improve surface residue recovery
+               by providing richer local geometric context"
 
-  2. IMPLEMENT — make ONE focused change. One variable per experiment.
+  2. RUN (30 minutes):
+     timeout 1800 python training/training.py \
+       --path_for_training_data ~/pdb_data/pdb_2021aug02 \
+       --path_for_outputs ~/pdb_data/<exp_name> \
+       --save_model_every_n_epochs 1 \
+       --mixed_precision True \
+       [changed flags] \
+       > run.log 2>&1
 
-  3. TRAIN (30 minutes):
-       python training/train.py \
-         --[your flags] \
-         --time_budget 1800 \
-         > run.log 2>&1
+  3. EVALUATE:
+     Run protein_mpnn_run.py on the latest checkpoint.
+     Extract mean seq_recovery.
 
-  4. EVALUATE:
-       python eval/eval_sequence_recovery.py \
-         --model_path outputs/current_experiment/best_model.pt \
-         >> run.log 2>&1
-     
-     Read result:
-       grep "sequence_recovery\|mean_recovery" run.log | tail -3
+  4. RECORD in results.tsv:
+     <description>  <seq_recovery>  <notes>
 
-  5. RECORD in results.tsv:
-       <description>  <seq_recovery>  <peak_mem_mb>  <notes>
+  5. DECIDE:
+     - If seq_recovery IMPROVED: 
+         echo "<flags used>" > ~/pdb_data/<exp_name>/config.txt
+         git add results.tsv && git commit -m "exp: <description> recovery=X.X%"
+     - If equal or worse: note in results.tsv, do not commit
 
-  6. DECIDE:
-     - If seq_recovery IMPROVED: git add -p && git commit -m "exp: <description>"
-     - If equal or worse: git checkout -- .
-
-  7. GOTO LOOP
+  6. GOTO LOOP
 ```
-
----
-
-## Practical guidance
-
-### Memory budget
-Stay below 100 GB peak. The OS and agent occupy ~20 GB.
-System OOM on the Spark freezes the whole machine — be conservative
-with new size combinations.
-
-### Batch size
-Reduce batch size before abandoning a large model configuration.
-A smaller batch with a bigger model is better than reverting to a small model.
-
-### BF16 training
-Always train in BF16:
-```python
-with torch.autocast(device_type='cuda', dtype=torch.bfloat16):
-    loss = model(...)
-```
-
-### Fair comparison
-All evaluations: same test set, T=0.1, greedy decoding.
-Do not change evaluation parameters between experiments.
 
 ---
 
@@ -184,26 +192,29 @@ Do not change evaluation parameters between experiments.
 After every 5 experiments:
 ```
 === Progress report ===
-Best seq_recovery: X.X%
-Baseline: 52.4%
-Delta: +X.X%
-Changes that helped: [list]
-Changes that hurt: [list]
-Current best config: hidden_dim=X, k=X, depth=X+X
-Next hypothesis: <one sentence>
+Best seq_recovery : X.X%
+Baseline          : 52.4% (or measured baseline)
+Delta             : +X.X%
+Best config so far: --hidden_dim X --num_neighbors X --num_encoder_layers X --num_decoder_layers X
+Changes that helped : [list]
+Changes that hurt   : [list]
+Next hypothesis     : <one sentence>
 ```
 
-Commit a RESULTS.md at session end.
+Commit a RESULTS.md at session end summarising all findings.
 
 ---
 
-## Reference: original model parameters
-```python
-hidden_dim = 128
-num_encoder_layers = 3
-num_decoder_layers = 3
-k_neighbors = 48
-backbone_noise = 0.20
-dropout = 0.1
-vocab_size = 21
+## Reference: baseline configuration
+```bash
+--hidden_dim 128
+--num_encoder_layers 3
+--num_decoder_layers 3
+--num_neighbors 48
+--backbone_noise 0.2
+--dropout 0.1
+--mixed_precision True
+--batch_size 10000
 ```
+
+Published sequence recovery: **52.4%** on 402 monomer test set.
