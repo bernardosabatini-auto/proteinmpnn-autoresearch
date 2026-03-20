@@ -1,0 +1,9 @@
+experiment	valid_acc	notes
+baseline_k48_h128_e3d3	0.416	16 epochs, 406s/epoch, still improving at timeout
+exp1_k64_h128_e3d3	0.406	13 epochs, 495s/epoch, +0.004 vs baseline at same epoch but fewer epochs total
+exp2_k96_h128_e3d3	0.355	9 epochs, 713s/epoch, worse - too slow per epoch, hidden_dim=128 can't exploit extra neighbors
+exp3_k48_h256_e3d3	0.386	9 epochs, 708s/epoch, +0.038 per-epoch vs baseline but fewer epochs
+exp4_k48_h128_e4d4	0.401	14 epochs, 485s/epoch, ~same as baseline at epoch 14 (0.399), no improvement
+exp5_k48_h128_e4d3	0.403	13 epochs, 496s/epoch, marginal +0.001 vs baseline at ep13, not significant
+exp6_k64_h256_e3d3	0.356	7 epochs, 903s/epoch, too compute-heavy, only 7 epochs
+exp7_k32_h128_e3d3	0.431	23 epochs, 291s/epoch, NEW BEST! faster epochs = more training = higher final acc
