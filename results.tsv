@@ -13,3 +13,5 @@ exp10_k32_h128_e2d2	0.428	31 epochs, 220s/epoch, 2+2 layers underfits slightly, 
 exp11_k40_h128_e3d3	0.425	19 epochs, 349s/epoch, better per-epoch but fewer epochs vs k=32
 exp12_k32_h128_e4d3	0.427	19 epochs, 357s/epoch, 4+3 layers barely helps, slower
 exp13_k28_h128_e3d3	0.432	26 epochs, 263s/epoch, NEW BEST! still climbing at timeout
+exp14_k24_h128_e4d3	0.412	23 epochs, 291s/epoch, deeper encoder hurts with only 24 neighbors
+exp15_k28_h192_e3d3	0.426	18 epochs, 360s/epoch, h=192 per-epoch gain not worth 37% slower epochs
