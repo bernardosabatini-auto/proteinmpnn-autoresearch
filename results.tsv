@@ -1,17 +1,24 @@
-experiment	valid_acc	notes
-baseline_k48_h128_e3d3	0.416	16 epochs, 406s/epoch, still improving at timeout
-exp1_k64_h128_e3d3	0.406	13 epochs, 495s/epoch, +0.004 vs baseline at same epoch but fewer epochs total
-exp2_k96_h128_e3d3	0.355	9 epochs, 713s/epoch, worse - too slow per epoch, hidden_dim=128 can't exploit extra neighbors
-exp3_k48_h256_e3d3	0.386	9 epochs, 708s/epoch, +0.038 per-epoch vs baseline but fewer epochs
-exp4_k48_h128_e4d4	0.401	14 epochs, 485s/epoch, ~same as baseline at epoch 14 (0.399), no improvement
-exp5_k48_h128_e4d3	0.403	13 epochs, 496s/epoch, marginal +0.001 vs baseline at ep13, not significant
-exp6_k64_h256_e3d3	0.356	7 epochs, 903s/epoch, too compute-heavy, only 7 epochs
-exp7_k32_h128_e3d3	0.431	23 epochs, 291s/epoch, NEW BEST! faster epochs = more training = higher final acc
-exp8_k24_h128_e3d3	0.424	29 epochs, 232s/epoch, quality ceiling too low with 24 neighbors
-exp9_k32_h256_e3d3	0.407	13 epochs, 503s/epoch, h=256 per-epoch gain not worth 42% slower epochs
-exp10_k32_h128_e2d2	0.428	31 epochs, 220s/epoch, 2+2 layers underfits slightly, close but no beat
-exp11_k40_h128_e3d3	0.425	19 epochs, 349s/epoch, better per-epoch but fewer epochs vs k=32
-exp12_k32_h128_e4d3	0.427	19 epochs, 357s/epoch, 4+3 layers barely helps, slower
-exp13_k28_h128_e3d3	0.432	26 epochs, 263s/epoch, NEW BEST! still climbing at timeout
-exp14_k24_h128_e4d3	0.412	23 epochs, 291s/epoch, deeper encoder hurts with only 24 neighbors
-exp15_k28_h192_e3d3	0.426	18 epochs, 360s/epoch, h=192 per-epoch gain not worth 37% slower epochs
+experiment	valid_acc_s100	valid_acc_2hr	steps_completed	s_per_step	notes
+# --- Phase 1: throughput-confounded results (valid_acc_2hr only) ---
+baseline_k48_h128_e3d3	-	0.416	5712	1.14	16 epochs, 406s/epoch
+exp1_k64_h128_e3d3	-	0.406	4524	1.42	13 epochs, 495s/epoch
+exp2_k96_h128_e3d3	-	0.355	3168	2.03	9 epochs, 713s/epoch
+exp3_k48_h256_e3d3	-	0.386	3195	2.01	9 epochs, 708s/epoch
+exp4_k48_h128_e4d4	-	0.401	4844	1.38	14 epochs, 485s/epoch
+exp5_k48_h128_e4d3	-	0.403	4602	1.42	13 epochs, 496s/epoch
+exp6_k64_h256_e3d3	-	0.356	2422	2.58	7 epochs, 903s/epoch
+exp7_k32_h128_e3d3	-	0.431	8165	0.83	23 epochs, 291s/epoch
+exp8_k24_h128_e3d3	-	0.424	9152	0.66	29 epochs, 232s/epoch
+exp9_k32_h256_e3d3	-	0.407	4641	1.43	13 epochs, 503s/epoch
+exp10_k32_h128_e2d2	-	0.428	9632	0.63	31 epochs, 220s/epoch
+exp11_k40_h128_e3d3	-	0.425	6764	0.99	19 epochs, 349s/epoch
+exp12_k32_h128_e4d3	-	0.427	6390	1.02	19 epochs, 357s/epoch
+exp13_k28_h128_e3d3	-	0.432	9152	0.75	26 epochs, 263s/epoch
+exp14_k24_h128_e4d3	-	0.412	7476	0.83	23 epochs, 291s/epoch
+exp15_k28_h192_e3d3	-	0.426	6035	1.03	18 epochs, 360s/epoch
+# --- Phase 2: fixed-step comparison (rerun top 3) ---
+# valid_acc_s100 = valid_acc at epoch where steps first exceed ~350 (epoch 1)
+# All configs get ~350 steps/epoch so epoch 1 is the first measurement point
+baseline_rerun_k48	0.208	0.424	6018	1.12	17ep, at ep17=0.424. AT SAME STEP k48 WINS: ep15=0.418 vs k28=0.395
+k28_rerun	0.210	0.427	8875	0.76	25ep, at ep17=0.396. k28 only wins via more steps not better learning
+k32_rerun	0.202	0.424	8073	0.83	23ep, at ep17=0.398. Same 2hr result as baseline despite 34% more steps
