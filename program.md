@@ -64,8 +64,7 @@ TORCHDYNAMO_DISABLE=1 timeout 7200 python training/training.py \
   --dropout 0.1 \
   --rescut 2.0 \
   --save_model_every_n_epochs 1 \
-  --reload_data_every_n_epochs 200 \
-  > run.log 2>&1
+  --reload_data_every_n_epochs 200 \  > run.log 2>&1
 ```
 
 `timeout 7200` enforces the 30-minute budget. Change flags as needed per experiment.
@@ -90,12 +89,38 @@ Do NOT change: backbone_noise, dropout, loss function, optimizer, dataset.
 
 ## Reading results
 ```bash
-# Best valid_acc from a run
-grep "valid_acc" run.log | awk -F'valid_acc: ' '{print $2}' | sort -n | tail -1
-
 # Full training curve
 grep "valid_acc" run.log
+
+# valid_acc at step 100 (primary metric)
+# The log prints: epoch: E, step: S, ... valid_acc: X
+# Find the first epoch where cumulative step S >= 100
+grep "^epoch" run.log | awk -F'[,:]' '{
+  for(i=1;i<=NF;i++) {
+    if($i ~ /step/) step=$(i+1)
+    if($i ~ /valid_acc/) acc=$(i+1)
+  }
+  if(step+0 >= 100 && !found) { print "valid_acc_s100: " acc; found=1 }
+}'
+
+# valid_acc at 2hr timeout (secondary metric)
+grep "valid_acc" run.log | awk -F'valid_acc: ' '{print $2}' | sort -n | tail -1
 ```
+
+## Results tracking
+
+Record TWO metrics per experiment in results.tsv:
+
+| Column | Meaning |
+|---|---|
+| valid_acc_s100 | valid_acc at first epoch where step >= 100 (architectural quality) |
+| valid_acc_2hr | best valid_acc at 2hr timeout (practical quality) |
+| steps_completed | total steps run |
+| s_per_step | seconds per step |
+
+PRIMARY comparison: valid_acc_s100
+SECONDARY: valid_acc_2hr
+
 
 ---
 
