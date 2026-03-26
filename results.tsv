@@ -27,3 +27,6 @@ k32_rerun	0.202	0.424	8073	0.83	23ep, at ep17=0.398. Same 2hr result as baseline
 phase2_h256_k48	0.216	0.362	3204	2.03	9ep, +0.008 per-step early but advantage fades by ep9
 phase2_attn_k48	0.226	0.422	5325	1.24	15ep, +0.018 per-step at ep1, +0.004 at ep15. BEST ARCH IMPROVEMENT
 phase2_e4d4_k48	0.188	0.412	4844	1.38	14ep, -0.020 per-step early, catches up by ep14
+# --- Phase 3: Kempner H100 full training (150 epochs, 12hr limit) ---
+# valid_acc_ep10 = valid_acc at epoch 10. Steps/epoch = 1497 on H100
+h100_baseline_k48_h128_e3d3	0.467	0.508	80838	0.18	54ep/4hr TIMEOUT, 273s/epoch, 1497 steps/ep on H100
