@@ -22,3 +22,8 @@ exp15_k28_h192_e3d3	-	0.426	6035	1.03	18 epochs, 360s/epoch
 baseline_rerun_k48	0.208	0.424	6018	1.12	17ep, at ep17=0.424. AT SAME STEP k48 WINS: ep15=0.418 vs k28=0.395
 k28_rerun	0.210	0.427	8875	0.76	25ep, at ep17=0.396. k28 only wins via more steps not better learning
 k32_rerun	0.202	0.424	8073	0.83	23ep, at ep17=0.398. Same 2hr result as baseline despite 34% more steps
+# --- Phase 2b: architectural experiments (all k=48, fixed-step comparison) ---
+# valid_acc_s350 = epoch 1 valid_acc (~350 steps). Baseline reference: 0.208
+phase2_h256_k48	0.216	0.362	3204	2.03	9ep, +0.008 per-step early but advantage fades by ep9
+phase2_attn_k48	0.226	0.422	5325	1.24	15ep, +0.018 per-step at ep1, +0.004 at ep15. BEST ARCH IMPROVEMENT
+phase2_e4d4_k48	0.188	0.412	4844	1.38	14ep, -0.020 per-step early, catches up by ep14
