@@ -31,3 +31,4 @@ phase2_e4d4_k48	0.188	0.412	4844	1.38	14ep, -0.020 per-step early, catches up by
 # valid_acc_ep10 = valid_acc at epoch 10. Steps/epoch = 1497 on H100
 h100_baseline_k48_h128_e3d3	0.467	0.508	80838	0.18	54ep/4hr TIMEOUT, 273s/epoch, 1497 steps/ep on H100
 attn_k48_h128_e3d3	0.474	0.518	224550	0.18	150ep COMPLETED, 268s/ep, best=0.518 at ep122. BEST OVERALL
+h256_k48_e3d3	0.491	0.512	172155	0.25	115ep/12hr TIMEOUT, 374s/ep, overfitting (train 0.565 >> valid 0.507)
