@@ -34,3 +34,5 @@ attn_k48_h128_e3d3	0.474	0.518	224550	0.18	150ep COMPLETED, 268s/ep, best=0.518 
 h256_k48_e3d3	0.491	0.512	172155	0.25	115ep/12hr TIMEOUT, 374s/ep, overfitting (train 0.565 >> valid 0.507)
 attn_h256_k48_e3d3	0.492	0.514	148203	0.29	99ep/12hr TIMEOUT, 434s/ep, overfitting (train 0.576 >> valid 0.507)
 h384_k48_e3d3	0.497	0.511	122754	0.35	82ep/12hr TIMEOUT, 522s/ep, severe overfitting (train 0.598 >> valid 0.501)
+# --- Phase 4: extended training and regularization ---
+attn_k48_h128_dropout02	0.474	0.523	224550	0.18	150ep COMPLETED, 269s/ep, best=0.523 at ep149. NEW BEST. dropout=0.2 key
