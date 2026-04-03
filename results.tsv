@@ -39,3 +39,8 @@ attn_k48_h128_dropout02	0.474	0.523	224550	0.18	150ep COMPLETED, 269s/ep, best=0
 attn_k48_h128_e3d3_200ep	0.474	0.521	235029	0.18	157ep/12hr TIMEOUT, 268s/ep, best=0.521 at ep135. Plateaued past ep135
 attn_h256_k48_dropout02	0.480	0.519	155688	0.18	104ep/12hr TIMEOUT, 413s/ep, best=0.519 at ep83. Overfitting (train 0.549)
 baseline_k48_h128_200ep	0.472	0.517	258981	0.18	173ep/12hr TIMEOUT, 248s/ep, best=0.517 at ep167. No overfitting but plateaued
+# --- Phase 5: Attention depth and capacity ---
+attn_e4d4_k48_h128	0.482	0.523	197604	0.22	132ep/12hr TIMEOUT, 326s/ep, best=0.523 at ep85. Deeper attn works well
+attn_e5d5_k48_h128	0.481	0.522	163173	0.25	109ep/12hr TIMEOUT, 410s/ep, best=0.522 at ep70. Overfitting past ep70
+attn_h192_k48_e3d3	0.479	0.517	178143	0.24	119ep/12hr TIMEOUT, 362s/ep, best=0.517 at ep42. Severe overfitting, needs more dropout
+attn_h256_k48_dropout03	0.481	0.524	148203	0.29	99ep/12hr TIMEOUT, 432s/ep, best=0.524 at ep62. MATCHES PUBLISHED BASELINE
