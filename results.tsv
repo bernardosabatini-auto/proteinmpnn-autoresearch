@@ -49,3 +49,8 @@ attn_h192_k48_e4d4	0.489	0.517	151197	0.28	101ep/12hr TIMEOUT, 422s/ep, best=0.5
 attn_h128_k48_e3d3_dropout015	0.476	0.521	220059	0.19	147ep/12hr TIMEOUT, 290s/ep, best=0.521 at ep120. No overfitting, still climbing
 attn_h256_k48_e4d4_dropout02	0.487	0.518	124251	0.34	83ep/12hr TIMEOUT, 515s/ep, best=0.518 at ep56. Overfitting (train 0.548)
 attn_h192_k48_e3d3_200ep	0.478	0.515	187125	0.23	125ep/12hr TIMEOUT, 341s/ep, best=0.515 at ep117. Severe overfitting (train 0.549)
+# --- Phase 7a: Extended training and regularization ---
+attn_h128_k48_dropout02_300ep	0.465	0.523	239520	0.18	160ep/12hr TIMEOUT, 268s/ep, best=0.523 at ep145. No overfitting, still climbing
+attn_h256_k48_dropout03_200ep	0.471	0.523	155688	0.27	104ep/12hr TIMEOUT, 412s/ep, best=0.523 at ep70. Overfitting past ep70
+attn_h256_k48_dropout04	0.484	0.525	155688	0.28	104ep/12hr TIMEOUT, 413s/ep, best=0.525 at ep81. BEATS PUBLISHED. dropout=0.4 works
+attn_e4d4_h128_dropout02	0.480	0.526	197604	0.22	132ep/12hr TIMEOUT, 325s/ep, best=0.526 at ep103. NEW BEST. depth+dropout combo
