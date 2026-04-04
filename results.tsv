@@ -44,3 +44,8 @@ attn_e4d4_k48_h128	0.482	0.523	197604	0.22	132ep/12hr TIMEOUT, 326s/ep, best=0.5
 attn_e5d5_k48_h128	0.481	0.522	163173	0.25	109ep/12hr TIMEOUT, 410s/ep, best=0.522 at ep70. Overfitting past ep70
 attn_h192_k48_e3d3	0.479	0.517	178143	0.24	119ep/12hr TIMEOUT, 362s/ep, best=0.517 at ep42. Severe overfitting, needs more dropout
 attn_h256_k48_dropout03	0.481	0.524	148203	0.29	99ep/12hr TIMEOUT, 432s/ep, best=0.524 at ep62. MATCHES PUBLISHED BASELINE
+# --- Phase 6: Combination experiments ---
+attn_h192_k48_e4d4	0.489	0.517	151197	0.28	101ep/12hr TIMEOUT, 422s/ep, best=0.517 at ep43. Severe overfitting (train 0.556)
+attn_h128_k48_e3d3_dropout015	0.476	0.521	220059	0.19	147ep/12hr TIMEOUT, 290s/ep, best=0.521 at ep120. No overfitting, still climbing
+attn_h256_k48_e4d4_dropout02	0.487	0.518	124251	0.34	83ep/12hr TIMEOUT, 515s/ep, best=0.518 at ep56. Overfitting (train 0.548)
+attn_h192_k48_e3d3_200ep	0.478	0.515	187125	0.23	125ep/12hr TIMEOUT, 341s/ep, best=0.515 at ep117. Severe overfitting (train 0.549)
