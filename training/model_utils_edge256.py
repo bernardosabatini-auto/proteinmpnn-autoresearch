@@ -431,7 +431,7 @@ class ProteinMPNN(nn.Module):
         self.edge_features = edge_features
         self.hidden_dim = hidden_dim
 
-        self.features = ProteinFeatures(node_features, edge_features, top_k=k_neighbors, augment_eps=augment_eps)
+        self.features = ProteinFeatures(edge_features, node_features, top_k=k_neighbors, augment_eps=augment_eps)
 
         self.W_e = nn.Linear(edge_features, hidden_dim, bias=True)
         self.W_s = nn.Embedding(vocab, hidden_dim)
