@@ -253,7 +253,7 @@ if __name__ == "__main__":
     argparser.add_argument("--batch_size", type=int, default=10000, help="number of tokens for one batch")
     argparser.add_argument("--max_protein_length", type=int, default=10000, help="maximum length of the protein complext")
     argparser.add_argument("--hidden_dim", type=int, default=128, help="hidden model dimension")
-    argparser.add_argument("--edge_dim", type=int, default=None, help="edge feature dimension (defaults to hidden_dim)")
+    argparser.add_argument("--edge_dim", type=int, default=256, help="edge feature dimension (defaults to 256 for this variant)")
     argparser.add_argument("--num_encoder_layers", type=int, default=3, help="number of encoder layers")
     argparser.add_argument("--num_decoder_layers", type=int, default=3, help="number of decoder layers")
     argparser.add_argument("--num_neighbors", type=int, default=48, help="number of neighbors for the sparse graph")
