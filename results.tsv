@@ -54,3 +54,8 @@ attn_h128_k48_dropout02_300ep	0.465	0.523	239520	0.18	160ep/12hr TIMEOUT, 268s/e
 attn_h256_k48_dropout03_200ep	0.471	0.523	155688	0.27	104ep/12hr TIMEOUT, 412s/ep, best=0.523 at ep70. Overfitting past ep70
 attn_h256_k48_dropout04	0.484	0.525	155688	0.28	104ep/12hr TIMEOUT, 413s/ep, best=0.525 at ep81. BEATS PUBLISHED. dropout=0.4 works
 attn_e4d4_h128_dropout02	0.480	0.526	197604	0.22	132ep/12hr TIMEOUT, 325s/ep, best=0.526 at ep103. NEW BEST. depth+dropout combo
+# --- Phase 7b: Extended depth experiments ---
+attn_e4d4_h128_dropout02_200ep	0.477	0.527	196107	0.22	131ep/12hr TIMEOUT, 325s/ep, best=0.527 at ep128. Still climbing
+attn_k48_h128_dropout015_300ep	0.476	0.524	236526	0.18	158ep/12hr TIMEOUT, 268s/ep, best=0.524 at ep149. Matches published
+attn_e4d4_h128_dropout015_200ep	0.477	0.524	197604	0.22	132ep/12hr TIMEOUT, 324s/ep, best=0.524 at ep105. Mild overfit
+attn_e5d5_h128_dropout02	0.482	0.528	167664	0.26	112ep/12hr TIMEOUT, 384s/ep, best=0.528 at ep104. NEW BEST. 5+5 layers
