@@ -59,3 +59,8 @@ attn_e4d4_h128_dropout02_200ep	0.477	0.527	196107	0.22	131ep/12hr TIMEOUT, 325s/
 attn_k48_h128_dropout015_300ep	0.476	0.524	236526	0.18	158ep/12hr TIMEOUT, 268s/ep, best=0.524 at ep149. Matches published
 attn_e4d4_h128_dropout015_200ep	0.477	0.524	197604	0.22	132ep/12hr TIMEOUT, 324s/ep, best=0.524 at ep105. Mild overfit
 attn_e5d5_h128_dropout02	0.482	0.528	167664	0.26	112ep/12hr TIMEOUT, 384s/ep, best=0.528 at ep104. NEW BEST. 5+5 layers
+# --- Phase 8: New architecture variants ---
+attn_multihead4_k48_h128	0.477	0.521	176646	0.21	118ep/12hr TIMEOUT, 315s/ep, best=0.521 at ep106. 4-head attn, mild overfitting
+attn_k64_h128_dropout02	0.472	0.526	193113	0.22	129ep/12hr TIMEOUT, 323s/ep, best=0.526 at ep126. k=64 works with attn+dropout!
+attn_h128_frames_k48	0.473	0.520	217065	0.19	145ep/12hr TIMEOUT, 290s/ep, best=0.520 at ep118. Frame features help early, mild overfit
+attn_h128_edge256_k48	-	FAILED	-	-	Bug in edge256 model (arg order + h_V init). Fixed but not resubmitted (quota full)
