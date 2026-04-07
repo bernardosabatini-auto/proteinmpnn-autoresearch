@@ -22,7 +22,7 @@ class StructureDataset():
         start = time.time()
         for i, entry in enumerate(pdb_dict_list):
             seq = entry['seq']
-            name = entry['name']
+            name = entry.get('name', f'entry_{i}')  # new dataset omits 'name'
 
             bad_chars = set([s for s in seq]).difference(alphabet_set)
             if len(bad_chars) == 0:
