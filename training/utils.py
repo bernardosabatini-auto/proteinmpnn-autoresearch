@@ -7,6 +7,37 @@ import time
 import random
 import os
 
+def _convert_new_format_entry(entry):
+    """Convert a new-format entry (label/seq/xyz/mask) to the old per-chain
+    format (name/seq/seq_chain_A/coords_chain_A/...) used by featurize().
+
+    The new format stores each chain as one entry with `xyz` of shape
+    [L, 14, 3] (all heavy atoms; first 4 = N, CA, C, O backbone) and a
+    `mask` of shape [L, 14]. We expose it as a single-chain protein with
+    chain letter A.
+    """
+    xyz = entry['xyz']
+    if hasattr(xyz, 'numpy'):
+        xyz_np = xyz.numpy()
+    else:
+        xyz_np = xyz
+    coords_chain_A = {
+        'N_chain_A':  xyz_np[:, 0, :].tolist(),
+        'CA_chain_A': xyz_np[:, 1, :].tolist(),
+        'C_chain_A':  xyz_np[:, 2, :].tolist(),
+        'O_chain_A':  xyz_np[:, 3, :].tolist(),
+    }
+    return {
+        'name': entry['label'],
+        'seq': entry['seq'],
+        'seq_chain_A': entry['seq'],
+        'coords_chain_A': coords_chain_A,
+        'masked_list': ['A'],
+        'visible_list': [],
+        'num_of_chains': 1,
+    }
+
+
 class StructureDataset():
     def __init__(self, pdb_dict_list, verbose=True, truncate=None, max_length=100,
         alphabet='ACDEFGHIKLMNPQRSTVWYX'):
@@ -21,8 +52,13 @@ class StructureDataset():
 
         start = time.time()
         for i, entry in enumerate(pdb_dict_list):
+            # New-format entries (per-chain with xyz tensor) need conversion
+            # to the old per-protein dict before featurize() can consume them.
+            if 'xyz' in entry and 'masked_list' not in entry:
+                entry = _convert_new_format_entry(entry)
+
             seq = entry['seq']
-            name = entry.get('name', f'entry_{i}')  # new dataset omits 'name'
+            name = entry.get('name', f'entry_{i}')
 
             bad_chars = set([s for s in seq]).difference(alphabet_set)
             if len(bad_chars) == 0:
