@@ -69,3 +69,8 @@ attn_e6d6_h128_dropout02	0.482	0.525	139221	0.32	93ep/12hr TIMEOUT, 476s/ep, bes
 attn_e5d5_k64_h128_dropout02	0.484	0.532	134730	0.34	90ep/12hr TIMEOUT, 500s/ep, best=0.532 at ep79. NEW BEST. Combining e5d5+k64 additive!
 attn_e5d5_h128_dropout03	0.477	0.528	169161	0.25	113ep/12hr TIMEOUT, 380s/ep, best=0.528 at ep108. Dropout 0.3 matches published 0.528
 attn_e5d5_h128_swiglu_dropout02	0.484	0.528	166167	0.26	111ep/12hr TIMEOUT, 387s/ep, best=0.528 at ep73. SwiGLU FFN matches e5d5 baseline
+# --- Phase 9 batch 2: Combining k=64 with other axes + push k=96 ---
+attn_e5d5_k64_swiglu_dropout02	0.488	0.533	136227	0.31	91ep/12hr TIMEOUT, 471s/ep, best=0.533 at ep91. SwiGLU+k64 matches plain k64
+attn_e5d5_k96_h128_dropout02	0.497	0.539	98802	0.43	66ep/12hr TIMEOUT, 649s/ep, best=0.539 at ep64. NEW BEST. k=96 wins, still climbing
+attn_e6d6_k64_h128_dropout02	0.490	0.533	116766	0.36	78ep/12hr TIMEOUT, 543s/ep, best=0.533 at ep68. e6d6 over k64 = no help
+attn_e5d5_k64_h128_dropout015	0.489	0.530	136227	0.31	91ep/12hr TIMEOUT, 470s/ep, best=0.530 at ep83. dropout 0.15 < 0.20 on k64+e5d5
