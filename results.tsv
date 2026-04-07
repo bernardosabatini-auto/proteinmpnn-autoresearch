@@ -64,3 +64,8 @@ attn_multihead4_k48_h128	0.477	0.521	176646	0.21	118ep/12hr TIMEOUT, 315s/ep, be
 attn_k64_h128_dropout02	0.472	0.526	193113	0.22	129ep/12hr TIMEOUT, 323s/ep, best=0.526 at ep126. k=64 works with attn+dropout!
 attn_h128_frames_k48	0.473	0.520	217065	0.19	145ep/12hr TIMEOUT, 290s/ep, best=0.520 at ep118. Frame features help early, mild overfit
 attn_h128_edge256_k48	-	FAILED	-	-	Bug in edge256 model (arg order + h_V init). Fixed but not resubmitted (quota full)
+# --- Phase 9: Combining winners (k=64, e5d5, SwiGLU) ---
+attn_e6d6_h128_dropout02	0.482	0.525	139221	0.32	93ep/12hr TIMEOUT, 476s/ep, best=0.525 at ep70. Depth beyond e5d5 doesn't help, plateaus
+attn_e5d5_k64_h128_dropout02	0.484	0.532	134730	0.34	90ep/12hr TIMEOUT, 500s/ep, best=0.532 at ep79. NEW BEST. Combining e5d5+k64 additive!
+attn_e5d5_h128_dropout03	0.477	0.528	169161	0.25	113ep/12hr TIMEOUT, 380s/ep, best=0.528 at ep108. Dropout 0.3 matches published 0.528
+attn_e5d5_h128_swiglu_dropout02	0.484	0.528	166167	0.26	111ep/12hr TIMEOUT, 387s/ep, best=0.528 at ep73. SwiGLU FFN matches e5d5 baseline
