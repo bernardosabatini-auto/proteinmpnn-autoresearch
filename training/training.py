@@ -138,7 +138,12 @@ def main(args):
             e = epoch + e
             model.train()
             train_sum, train_weights = 0., 0.
-            train_acc = 0.
+            # Per-protein accuracy: sum of per-protein recovery rates and a count
+            # of contributing proteins. valid_acc / train_acc are reported as the
+            # mean per-protein recovery (each protein weighted equally regardless
+            # of length), the field-standard sequence-recovery metric.
+            train_acc_pp_sum = 0.
+            train_protein_count = 0
             if e % args.reload_data_every_n_epochs == 0:
                 if reload_c != 0:
                     pdb_dict_train = _sample_split(_all_train, args.num_examples_per_epoch)
@@ -178,32 +183,50 @@ def main(args):
                     optimizer.step()
                 
                 loss, loss_av, true_false = loss_nll(S, log_probs, mask_for_loss)
-            
+
                 train_sum += torch.sum(loss * mask_for_loss).cpu().data.numpy()
-                train_acc += torch.sum(true_false * mask_for_loss).cpu().data.numpy()
                 train_weights += torch.sum(mask_for_loss).cpu().data.numpy()
+
+                # Per-protein accuracy: each protein in the batch contributes its
+                # own recovery rate; proteins with zero masked residues are skipped.
+                with torch.no_grad():
+                    pp_correct = (true_false * mask_for_loss).sum(dim=1)  # [B]
+                    pp_total = mask_for_loss.sum(dim=1)                   # [B]
+                    valid_proteins = pp_total > 0
+                    if valid_proteins.any():
+                        per_protein_acc = pp_correct[valid_proteins] / pp_total[valid_proteins]
+                        train_acc_pp_sum += per_protein_acc.sum().cpu().data.numpy()
+                        train_protein_count += int(valid_proteins.sum().item())
 
                 total_step += 1
 
             model.eval()
             with torch.no_grad():
                 validation_sum, validation_weights = 0., 0.
-                validation_acc = 0.
+                validation_acc_pp_sum = 0.
+                validation_protein_count = 0
                 for _, batch in enumerate(loader_valid):
                     X, S, mask, lengths, chain_M, residue_idx, mask_self, chain_encoding_all = featurize(batch, device)
                     log_probs = model(X, S, mask, chain_M, residue_idx, chain_encoding_all)
                     mask_for_loss = mask*chain_M
                     loss, loss_av, true_false = loss_nll(S, log_probs, mask_for_loss)
-                    
+
                     validation_sum += torch.sum(loss * mask_for_loss).cpu().data.numpy()
-                    validation_acc += torch.sum(true_false * mask_for_loss).cpu().data.numpy()
                     validation_weights += torch.sum(mask_for_loss).cpu().data.numpy()
-            
+
+                    pp_correct = (true_false * mask_for_loss).sum(dim=1)  # [B]
+                    pp_total = mask_for_loss.sum(dim=1)                   # [B]
+                    valid_proteins = pp_total > 0
+                    if valid_proteins.any():
+                        per_protein_acc = pp_correct[valid_proteins] / pp_total[valid_proteins]
+                        validation_acc_pp_sum += per_protein_acc.sum().cpu().data.numpy()
+                        validation_protein_count += int(valid_proteins.sum().item())
+
             train_loss = train_sum / train_weights
-            train_accuracy = train_acc / train_weights
+            train_accuracy = train_acc_pp_sum / max(train_protein_count, 1)
             train_perplexity = np.exp(train_loss)
             validation_loss = validation_sum / validation_weights
-            validation_accuracy = validation_acc / validation_weights
+            validation_accuracy = validation_acc_pp_sum / max(validation_protein_count, 1)
             validation_perplexity = np.exp(validation_loss)
             
             train_perplexity_ = np.format_float_positional(np.float32(train_perplexity), unique=False, precision=3)     
