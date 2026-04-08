@@ -101,12 +101,14 @@ def main():
         proteins = proteins[:args.num_proteins]
     print(f'  Evaluating {len(proteins)} proteins')
 
-    # Per-bin accumulators
+    # Per-protein accuracies (each protein weighted equally regardless of length)
     bins = [(0, 100), (100, 200), (200, 500), (500, 1000)]
+    bin_per_protein = {b: [] for b in bins}
+    all_per_protein = []
+
+    # Residue-weighted accumulators (kept as a secondary metric for sanity)
     bin_correct = {b: 0.0 for b in bins}
     bin_total = {b: 0.0 for b in bins}
-    bin_count = {b: 0 for b in bins}
-
     overall_correct = 0.0
     overall_total = 0.0
 
@@ -128,47 +130,77 @@ def main():
                     log_probs = model(X, S, mask, chain_M, residue_idx,
                                       chain_encoding_all, randn)
 
-            # argmax recovery on masked positions only (matches training)
             pred = log_probs.argmax(dim=-1)  # [B, L]
             mask_for_loss = mask * chain_M
             correct = ((pred == S).float() * mask_for_loss).sum().item()
             total = mask_for_loss.sum().item()
+            if total <= 0:
+                continue
 
+            # Per-protein accuracy: this protein's recovery on its own masked residues
+            protein_acc = correct / total
+            all_per_protein.append(protein_acc)
+
+            # Residue-weighted accumulators
             overall_correct += correct
             overall_total += total
 
             L = len(protein['seq'])
             for lo, hi in bins:
                 if lo <= L < hi:
+                    bin_per_protein[(lo, hi)].append(protein_acc)
                     bin_correct[(lo, hi)] += correct
                     bin_total[(lo, hi)] += total
-                    bin_count[(lo, hi)] += 1
                     break
 
             if (i + 1) % 100 == 0:
-                print(f'  [{i+1}/{len(proteins)}] running valid_acc='
-                      f'{overall_correct / max(overall_total, 1):.4f}  '
+                running_pp = float(np.mean(all_per_protein)) if all_per_protein else 0.0
+                running_rw = overall_correct / max(overall_total, 1)
+                print(f'  [{i+1}/{len(proteins)}] '
+                      f'per-protein={running_pp:.4f}  '
+                      f'residue-weighted={running_rw:.4f}  '
                       f'({time.time() - t0:.0f}s)')
 
     elapsed = time.time() - t0
-    overall = overall_correct / max(overall_total, 1)
-    print('\n' + '=' * 70)
+    overall_pp = float(np.mean(all_per_protein)) if all_per_protein else 0.0
+    overall_rw = overall_correct / max(overall_total, 1)
+
+    print('\n' + '=' * 78)
     print('LENGTH-STRATIFIED RECOVERY')
-    print('=' * 70)
+    print('=' * 78)
     print(f'Checkpoint:  {args.checkpoint}')
     print(f'Architecture: {args.model} h={args.hidden_dim} '
           f'e{args.num_encoder_layers}d{args.num_decoder_layers} k={args.k_neighbors}')
-    print(f'Time: {elapsed:.0f}s, proteins: {len(proteins)}')
+    print(f'Time: {elapsed:.0f}s, proteins: {len(all_per_protein)}')
     print()
-    print(f'{"length bin":<14} {"n":>5} {"residues":>12} {"valid_acc":>10}')
-    print('-' * 45)
+    print('PRIMARY metric — per-protein accuracy (each protein weighted equally):')
+    print(f'  {"length bin":<14} {"n":>5} {"per_protein_acc":>16} {"std":>8}')
+    print('  ' + '-' * 48)
     for lo, hi in bins:
-        n = bin_count[(lo, hi)]
+        accs = bin_per_protein[(lo, hi)]
+        n = len(accs)
+        if n == 0:
+            print(f'  [{lo:4d}, {hi:4d})   {n:>5d} {"-":>16} {"-":>8}')
+            continue
+        mean = float(np.mean(accs))
+        std = float(np.std(accs))
+        print(f'  [{lo:4d}, {hi:4d})   {n:>5d} {mean:>16.4f} {std:>8.4f}')
+    print('  ' + '-' * 48)
+    print(f'  {"OVERALL":<14} {len(all_per_protein):>5d} {overall_pp:>16.4f} '
+          f'{float(np.std(all_per_protein)):>8.4f}')
+
+    print()
+    print('SECONDARY metric — residue-weighted accuracy (matches training valid_acc):')
+    print(f'  {"length bin":<14} {"n":>5} {"residues":>12} {"residue_wt_acc":>16}')
+    print('  ' + '-' * 51)
+    for lo, hi in bins:
+        n = len(bin_per_protein[(lo, hi)])
         tot = bin_total[(lo, hi)]
         acc = bin_correct[(lo, hi)] / max(tot, 1)
-        print(f'[{lo:4d}, {hi:4d})   {n:>5d} {int(tot):>12d} {acc:>10.4f}')
-    print('-' * 45)
-    print(f'{"OVERALL":<14} {sum(bin_count.values()):>5d} {int(overall_total):>12d} {overall:>10.4f}')
+        print(f'  [{lo:4d}, {hi:4d})   {n:>5d} {int(tot):>12d} {acc:>16.4f}')
+    print('  ' + '-' * 51)
+    print(f'  {"OVERALL":<14} {len(all_per_protein):>5d} {int(overall_total):>12d} '
+          f'{overall_rw:>16.4f}')
 
 
 if __name__ == '__main__':
