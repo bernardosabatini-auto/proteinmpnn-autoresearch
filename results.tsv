@@ -80,3 +80,7 @@ attn_e5d5_k96_h128_dropout02_resume	-	0.541	-	0.45	in progress (resume from k96 
 attn_e5d5_k64_h128_dropout02_resume	-	0.535	-	0.31	in progress (resume from k64 ep90 0.532). best 0.535, plateau
 attn_e5d5_k96_newdata	-	0.531	-	0.60	in progress (k96 fine-tune on processed_new_full). Severely overfits new data: train 0.55 vs valid 0.52
 attn_e5d5_k64_newdata	-	0.523	-	0.43	CANCELLED at ep130. Severely overfits: train 0.557 vs valid 0.512. Fine-tuning on new dataset hurts.
+# --- Phase 10 batch 2: more k96 + push k=128, k=160 ---
+attn_e5d5_k96_h128_dropout02_resume	-	0.543	194610	0.45	131ep/12hr TIMEOUT, 668s/ep, best=0.543 at ep126. NEW BEST. Resume from k96 ep66=0.539
+attn_e5d5_k64_h128_dropout02_resume	-	0.535	271000	0.31	181ep/12hr TIMEOUT, 470s/ep, best=0.535 at ep~130. Plateau, no further gain
+attn_e5d5_k96_newdata	-	0.531	198498	0.60	114ep/12hr TIMEOUT, 891s/ep, best=0.531 at ep67. Fine-tune on processed_new_full DEGRADES from 0.539 baseline
