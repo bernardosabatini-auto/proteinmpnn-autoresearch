@@ -74,3 +74,9 @@ attn_e5d5_k64_swiglu_dropout02	0.488	0.533	136227	0.31	91ep/12hr TIMEOUT, 471s/e
 attn_e5d5_k96_h128_dropout02	0.497	0.539	98802	0.43	66ep/12hr TIMEOUT, 649s/ep, best=0.539 at ep64. NEW BEST. k=96 wins, still climbing
 attn_e6d6_k64_h128_dropout02	0.490	0.533	116766	0.36	78ep/12hr TIMEOUT, 543s/ep, best=0.533 at ep68. e6d6 over k64 = no help
 attn_e5d5_k64_h128_dropout015	0.489	0.530	136227	0.31	91ep/12hr TIMEOUT, 470s/ep, best=0.530 at ep83. dropout 0.15 < 0.20 on k64+e5d5
+# --- Phase 10: Resume from best, fine-tune on new data, push k=128 ---
+# (resume runs continue training the same architecture from epoch_last.pt)
+attn_e5d5_k96_h128_dropout02_resume	-	0.541	-	0.45	in progress (resume from k96 ep66 0.539). NEW BEST 0.541 at ep83/93/102, declined past ep102. best ckpt saved.
+attn_e5d5_k64_h128_dropout02_resume	-	0.535	-	0.31	in progress (resume from k64 ep90 0.532). best 0.535, plateau
+attn_e5d5_k96_newdata	-	0.531	-	0.60	in progress (k96 fine-tune on processed_new_full). Severely overfits new data: train 0.55 vs valid 0.52
+attn_e5d5_k64_newdata	-	0.523	-	0.43	CANCELLED at ep130. Severely overfits: train 0.557 vs valid 0.512. Fine-tuning on new dataset hurts.
