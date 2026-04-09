@@ -21,10 +21,18 @@ import argparse
 import os
 import sys
 import time
+
+import numpy as np
 import torch
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from utils import build_training_clusters, loader_pdb, get_pdbs, worker_init_fn
+
+
+# Sentinel returned for entries that fail to load. get_pdbs filters out
+# any returned dict that lacks a 'label' key, so this sentinel is silently
+# dropped by the downstream pipeline.
+_BROKEN_ENTRY = {'seq': np.zeros(5)}
 
 
 class AllChainsDataset(torch.utils.data.Dataset):
@@ -33,6 +41,11 @@ class AllChainsDataset(torch.utils.data.Dataset):
     Each entry in the underlying cluster dict has shape [pdbid_chain, hash].
     We flatten across all clusters so a DataLoader iterates every chain
     exactly once (no random sampling like PDB_dataset.__getitem__).
+
+    loader_pdb raises FileNotFoundError when a referenced chain .pt is
+    missing from disk (the published pdb_2021aug02 dataset has a handful
+    of these). We catch and return a sentinel dict so get_pdbs drops it
+    without aborting the entire DataLoader iteration.
     """
 
     def __init__(self, cluster_dict, loader, params):
@@ -46,9 +59,10 @@ class AllChainsDataset(torch.utils.data.Dataset):
         return len(self.items)
 
     def __getitem__(self, idx):
-        # loader_pdb may raise on missing/corrupt entries; the caller drops
-        # those when building the cache.
-        return self.loader(self.items[idx], self.params)
+        try:
+            return self.loader(self.items[idx], self.params)
+        except (FileNotFoundError, KeyError, RuntimeError, EOFError):
+            return _BROKEN_ENTRY
 
 
 def main():
