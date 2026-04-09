@@ -78,10 +78,27 @@ export MASTER_PORT=$((20000 + SLURM_JOB_ID % 20000))
 echo "MASTER_ADDR:   $MASTER_ADDR"
 echo "MASTER_PORT:   $MASTER_PORT"
 
-# NCCL: prefer InfiniBand on FASRC; fall back gracefully if not available.
-export NCCL_DEBUG=${NCCL_DEBUG:-INFO}
+# NCCL: pin to FASRC InfiniBand fabric. Prior smoke test confirmed ib0 +
+# mlx5_{2,3,4,5} HCAs are present and reachable. Without explicit pinning
+# NCCL can pick up stale Ethernet routes and hang on the first allreduce
+# even after a successful bootstrap.
+export NCCL_DEBUG=${NCCL_DEBUG:-WARN}
 export NCCL_IB_DISABLE=${NCCL_IB_DISABLE:-0}
+export NCCL_SOCKET_IFNAME=${NCCL_SOCKET_IFNAME:-ib0}
+export NCCL_IB_HCA=${NCCL_IB_HCA:-mlx5}
+export NCCL_TIMEOUT=${NCCL_TIMEOUT:-1800}
 export NCCL_ASYNC_ERROR_HANDLING=1
+
+# Stream-mode pre-featurization can take 30+ minutes loading per-chain .pt
+# files from a parallel filesystem before any collective is called. PyTorch
+# has TWO independent watchdogs that can fire on a "long quiet period":
+#   1. Per-collective timeout (default 10 min) — also set via
+#      init_process_group(timeout=1h) in training_attn.py.
+#   2. Heartbeat monitor (default 480s) — fires when the watchdog itself
+#      has been idle too long, even if no collective is in flight. Bumped
+#      here so it tolerates the slow first-epoch load.
+export TORCH_NCCL_HEARTBEAT_TIMEOUT_SEC=${TORCH_NCCL_HEARTBEAT_TIMEOUT_SEC:-3600}
+export TORCH_NCCL_ENABLE_MONITORING=${TORCH_NCCL_ENABLE_MONITORING:-0}
 
 # ---------------------------------------------------------------------------
 # Paths

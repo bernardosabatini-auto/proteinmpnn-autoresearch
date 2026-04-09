@@ -271,13 +271,21 @@ def main(args):
                     loader_valid = StructureLoader(dataset_valid, batch_size=args.batch_size)
                 reload_c += 1
 
-            # Pre-featurize so we can sync the per-epoch step count across ranks
+            # Pre-featurize so we can sync the per-epoch step count across ranks.
+            # Print periodic progress so a stalled rank is observable.
+            _t_pre = time.time()
             cached_train = []
-            for batch in loader_train:
+            for _bi, batch in enumerate(loader_train):
                 try:
                     cached_train.append(featurize(batch, device))
                 except Exception:
                     continue
+                if is_main and (_bi + 1) % 50 == 0:
+                    print(f"[rank0] pre-featurize train: {_bi+1} batches, "
+                          f"{time.time()-_t_pre:.1f}s elapsed", flush=True)
+            if is_main:
+                print(f"[rank0] pre-featurize train DONE: {len(cached_train)} batches, "
+                      f"{time.time()-_t_pre:.1f}s", flush=True)
             n_train_global = _sync_min_steps(len(cached_train))
             cached_train = cached_train[:n_train_global]
 
@@ -287,6 +295,8 @@ def main(args):
                     cached_valid.append(featurize(batch, device))
                 except Exception:
                     continue
+            if is_main:
+                print(f"[rank0] pre-featurize valid DONE: {len(cached_valid)} batches", flush=True)
             n_valid_global = _sync_min_steps(len(cached_valid))
             cached_valid = cached_valid[:n_valid_global]
 
