@@ -56,9 +56,12 @@ def submit_job(args) -> str:
         "PREVIOUS_CHECKPOINT": args.previous_checkpoint,
     })
 
+    sbatch_cmd = ["sbatch", "--parsable"]
+    if args.time:
+        sbatch_cmd += ["--time", args.time]
+    sbatch_cmd.append(str(SCRIPT_PATH))
     result = subprocess.run(
-        ["sbatch", "--parsable", str(SCRIPT_PATH)],
-        env=env, capture_output=True, text=True
+        sbatch_cmd, env=env, capture_output=True, text=True
     )
 
     if result.returncode != 0:
@@ -144,6 +147,8 @@ def main():
                         help="path to pre-processed training data directory")
     parser.add_argument("--previous_checkpoint", default="",
                         help="path to .pt checkpoint to fine-tune from (empty = train from scratch)")
+    parser.add_argument("--time", default="",
+                        help="SLURM time limit override, e.g. 24:00:00 (empty = use #SBATCH default)")
     parser.add_argument("--no-wait",             action="store_true")
     args = parser.parse_args()
 
