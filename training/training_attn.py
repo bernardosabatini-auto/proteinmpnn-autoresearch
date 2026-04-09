@@ -15,6 +15,7 @@ def main(args):
     import torch.nn.functional as F
     import torch.distributed as dist
     from torch.nn.parallel import DistributedDataParallel as DDP
+    from datetime import timedelta
     import random
     import os.path
     import subprocess
@@ -50,7 +51,11 @@ def main(args):
     if world_size > 1:
         # init_method defaults to env://, which uses MASTER_ADDR/MASTER_PORT
         # plus RANK/WORLD_SIZE from os.environ.
-        dist.init_process_group(backend="nccl")
+        # Long timeout: stream-mode pre-featurization can take 30+ minutes on
+        # the first epoch, and ranks drift apart while loading per-chain .pt
+        # files from a parallel filesystem. The default 10-min watchdog
+        # times out the first all_reduce(MIN) sync. 1h is safe headroom.
+        dist.init_process_group(backend="nccl", timeout=timedelta(hours=1))
         torch.cuda.set_device(local_rank)
     is_main = (rank == 0)
 
