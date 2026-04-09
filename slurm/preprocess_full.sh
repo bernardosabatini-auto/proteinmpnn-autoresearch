@@ -6,7 +6,7 @@
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=23
 #SBATCH --gres=gpu:1
-#SBATCH --mem=240G
+#SBATCH --mem=500G
 #SBATCH --time=12:00:00
 #SBATCH --output=/n/netscratch/bsabatini_lab/Users/bsabatini/proteinmpnn/logs/prepfull_%j.out
 #SBATCH --error=/n/netscratch/bsabatini_lab/Users/bsabatini/proteinmpnn/logs/prepfull_%j.err
@@ -43,7 +43,7 @@ DATA_DIR="${DATA_DIR:-$SCRATCH/data/pdb_2021aug02}"
 OUT_DIR="${OUT_DIR:-$SCRATCH/data/pdb_2021aug02_full_cache}"
 RESCUT="${RESCUT:-3.5}"
 MAX_LENGTH="${MAX_LENGTH:-10000}"
-NUM_WORKERS="${NUM_WORKERS:-20}"
+NUM_WORKERS="${NUM_WORKERS:-8}"
 
 echo "DATA_DIR:  $DATA_DIR"
 echo "OUT_DIR:   $OUT_DIR"
