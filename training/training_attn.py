@@ -136,19 +136,41 @@ def main(args):
 
 
     # -------------------------------------------------------------------
-    # Data loading: two modes
-    #   1) cache mode  — pre-processed train.pt/valid.pt (small subsets)
-    #   2) stream mode — original ProteinMPNN per-chain .pt files under
-    #                    {data_path}/pdb/, sampled via PDB_dataset
+    # Data loading: three modes
+    #   1) shard-cache mode  — preprocess_full.py output: manifest.json
+    #                          + train_shard_*.pt / valid_shard_*.pt
+    #   2) single-cache mode — preprocess.py output: train.pt / valid.pt
+    #   3) stream mode       — raw per-chain .pt files under {data}/pdb/
     # -------------------------------------------------------------------
     import os as _os
+    import json as _json
     import random as _random
     _processed_dir = args.path_for_training_data
+    _manifest_path = _os.path.join(_processed_dir, 'manifest.json')
     _train_cache = _os.path.join(_processed_dir, 'train.pt')
     _valid_cache = _os.path.join(_processed_dir, 'valid.pt')
-    use_cache = _os.path.exists(_train_cache) and _os.path.exists(_valid_cache)
+    use_shard_cache = _os.path.exists(_manifest_path)
+    use_cache = use_shard_cache or (
+        _os.path.exists(_train_cache) and _os.path.exists(_valid_cache))
 
-    if use_cache:
+    if use_shard_cache:
+        if is_main:
+            print(f"Loading sharded cache from {_processed_dir}...", flush=True)
+        with open(_manifest_path) as _f:
+            _manifest = _json.load(_f)
+
+        def _load_shards(split_name):
+            entries = []
+            for shard_fname in _manifest['splits'][split_name]['shards']:
+                shard_path = _os.path.join(_processed_dir, shard_fname)
+                entries.extend(torch.load(shard_path))
+            return entries
+
+        _all_train = _load_shards('train')
+        _all_valid = _load_shards('valid')
+        if is_main:
+            print(f"  Train: {len(_all_train)} structures, Valid: {len(_all_valid)}", flush=True)
+    elif use_cache:
         if is_main:
             print(f"Loading pre-processed data from {_processed_dir}...", flush=True)
         _all_train = torch.load(_train_cache)
