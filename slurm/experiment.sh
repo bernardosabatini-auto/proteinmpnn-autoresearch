@@ -56,6 +56,7 @@ python training/${TRAINING_SCRIPT:-training.py} \
     --dropout                "${DROPOUT:-0.1}" \
     --save_model_every_n_epochs "${SAVE_EVERY:-10}" \
     --reload_data_every_n_epochs "${RELOAD_EVERY:-200}" \
+    --max_protein_length     "${MAX_PROTEIN_LENGTH:-10000}" \
     --previous_checkpoint    "$PREVIOUS_CHECKPOINT"
 
 echo "Done: $(date)"

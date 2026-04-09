@@ -54,6 +54,7 @@ def submit_job(args) -> str:
         "RELOAD_EVERY":        str(args.reload_every),
         "DATA_DIR":            args.data_dir,
         "PREVIOUS_CHECKPOINT": args.previous_checkpoint,
+        "MAX_PROTEIN_LENGTH":  str(args.max_protein_length),
     })
 
     sbatch_cmd = ["sbatch", "--parsable"]
@@ -149,6 +150,8 @@ def main():
                         help="path to .pt checkpoint to fine-tune from (empty = train from scratch)")
     parser.add_argument("--time", default="",
                         help="SLURM time limit override, e.g. 24:00:00 (empty = use #SBATCH default)")
+    parser.add_argument("--max_protein_length", type=int, default=10000,
+                        help="Filter out proteins longer than this (must be ≥ batch_size)")
     parser.add_argument("--no-wait",             action="store_true")
     args = parser.parse_args()
 
