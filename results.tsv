@@ -84,3 +84,9 @@ attn_e5d5_k64_newdata	-	0.523	-	0.43	CANCELLED at ep130. Severely overfits: trai
 attn_e5d5_k96_h128_dropout02_resume	-	0.543	194610	0.45	131ep/12hr TIMEOUT, 668s/ep, best=0.543 at ep126. NEW BEST. Resume from k96 ep66=0.539
 attn_e5d5_k64_h128_dropout02_resume	-	0.535	271000	0.31	181ep/12hr TIMEOUT, 470s/ep, best=0.535 at ep~130. Plateau, no further gain
 attn_e5d5_k96_newdata	-	0.531	198498	0.60	114ep/12hr TIMEOUT, 891s/ep, best=0.531 at ep67. Fine-tune on processed_new_full DEGRADES from 0.539 baseline
+# --- Phase 11: per-protein metric (each protein weighted equally regardless of length) ---
+# valid_acc column below = mean per-protein recovery, the field-standard metric
+vanilla_k48_perprot	-	0.511	239520	0.18	160ep/12hr TIMEOUT, 268s/ep, e3d3 vanilla architecture, no attention
+attn_e5d5_k48_perprot	-	0.522	167664	0.26	112ep/12hr TIMEOUT, 383s/ep, attention agg adds +0.011 over vanilla at same k
+attn_e5d5_k96_perprot	-	0.529	98802	0.43	66ep/12hr TIMEOUT, 645s/ep, k=64→96 adds +0.007 over k=48
+attn_e5d5_k128_perprot	-	0.537	77844	0.55	52ep/12hr TIMEOUT, 825s/ep, NEW BEST per-protein. k=96→128 adds +0.008
