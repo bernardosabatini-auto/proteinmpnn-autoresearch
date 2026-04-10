@@ -90,3 +90,10 @@ vanilla_k48_perprot	-	0.511	239520	0.18	160ep/12hr TIMEOUT, 268s/ep, e3d3 vanill
 attn_e5d5_k48_perprot	-	0.522	167664	0.26	112ep/12hr TIMEOUT, 383s/ep, attention agg adds +0.011 over vanilla at same k
 attn_e5d5_k96_perprot	-	0.529	98802	0.43	66ep/12hr TIMEOUT, 645s/ep, k=64→96 adds +0.007 over k=48
 attn_e5d5_k128_perprot	-	0.537	77844	0.55	52ep/12hr TIMEOUT, 825s/ep, NEW BEST per-protein. k=96→128 adds +0.008
+# --- Phase 12: Priority 24hr experiments — resume k160/k192, new architectures ---
+# (note: all valid_acc below are RESIDUE-WEIGHTED, from training_attn.py before DDP merge.
+#  Per-protein metric is ~0.005-0.010 lower; see Phase 11 entries above for that calibration)
+attn_e5d5_k192_h128_dropout02_resume	-	0.562	133233	0.79	89ep/24hr TIMEOUT, 1208s/ep. NEW BEST (residue-weighted). Resumed from ep16=0.541. Still climbing at timeout
+attn_e5d5_k160_h128_dropout02_resume	-	0.556	191616	0.67	128ep/24hr TIMEOUT, 1000s/ep. Resumed from ep42=0.552. Peaked ep~112, gentle decline
+attn_e6d6_k128_h128_dropout02	-	0.545	133233	0.64	89ep/24hr TIMEOUT, 965s/ep. e6d6+k128: depth doesn't help over e5d5 at k=128 (e5d5=0.550)
+attn_e5d5_k192_h256_dropout02	-	0.428	40620	0.77	DIVERGED at ep11 (NaN). h=256+k=192 too aggressive for default LR. Cancelled at ep20.
