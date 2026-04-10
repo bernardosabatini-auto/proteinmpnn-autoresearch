@@ -178,6 +178,8 @@ def main(args):
         if is_main:
             print(f"  Train: {len(_all_train)} structures, Valid: {len(_all_valid)}", flush=True)
 
+    # Shared by both shard-cache and single-cache paths.
+    if use_cache:
         def _sample_global(seed_offset):
             # Deterministic global sample so all ranks see the same draw,
             # then shard by rank stride.
