@@ -119,7 +119,7 @@ def featurize(batch, device):
     S = torch.from_numpy(S).to(dtype=torch.long,device=device)
     X = torch.from_numpy(X).to(dtype=torch.float32, device=device)
     mask = torch.from_numpy(mask).to(dtype=torch.float32, device=device)
-    mask_self = torch.from_numpy(mask_self).to(dtype=torch.float32, device=device)
+    mask_self = torch.from_numpy(mask_self).to(dtype=torch.float32)  # keep on CPU — not used in forward/backward
     chain_M = torch.from_numpy(chain_M).to(dtype=torch.float32, device=device)
     chain_encoding_all = torch.from_numpy(chain_encoding_all).to(dtype=torch.long, device=device)
     return X, S, mask, lengths, chain_M, residue_idx, mask_self, chain_encoding_all
@@ -356,9 +356,10 @@ class ProteinFeatures(nn.Module):
         return RBF
 
     def _get_rbf(self, A, B, E_idx):
-        D_A_B = torch.sqrt(torch.sum((A[:,:,None,:] - B[:,None,:,:])**2,-1) + 1e-6) #[B, L, L]
-        D_A_B_neighbors = gather_edges(D_A_B[:,:,:,None], E_idx)[:,:,:,0] #[B,L,K]
-        RBF_A_B = self._rbf(D_A_B_neighbors)
+        # Gather B at neighbor indices first → O(L·K) instead of O(L²)
+        B_neigh = gather_nodes(B, E_idx)               # [B, L, K, 3]
+        D_A_B = torch.sqrt(torch.sum((A[:,:,None,:] - B_neigh)**2, -1) + 1e-6)  # [B, L, K]
+        RBF_A_B = self._rbf(D_A_B)
         return RBF_A_B
 
     def forward(self, X, mask, residue_idx, chain_labels):
@@ -530,7 +531,7 @@ class NoamOpt:
     def zero_grad(self):
         self.optimizer.zero_grad()
 
-def get_std_opt(parameters, d_model, step):
+def get_std_opt(parameters, d_model, step, lr_scale=1.0):
     return NoamOpt(
-        d_model, 2, 4000, torch.optim.Adam(parameters, lr=0, betas=(0.9, 0.98), eps=1e-9), step
+        d_model, 2 * lr_scale, 4000, torch.optim.Adam(parameters, lr=0, betas=(0.9, 0.98), eps=1e-9), step
     )

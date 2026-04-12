@@ -82,12 +82,14 @@ echo "MASTER_PORT:   $MASTER_PORT"
 # mlx5_{2,3,4,5} HCAs are present and reachable. Without explicit pinning
 # NCCL can pick up stale Ethernet routes and hang on the first allreduce
 # even after a successful bootstrap.
-export NCCL_DEBUG=${NCCL_DEBUG:-WARN}
-export NCCL_IB_DISABLE=${NCCL_IB_DISABLE:-0}
-export NCCL_SOCKET_IFNAME=${NCCL_SOCKET_IFNAME:-ib0}
-export NCCL_IB_HCA=${NCCL_IB_HCA:-mlx5}
+export NCCL_IB_DISABLE=0
+export NCCL_IB_HCA=mlx5_0,mlx5_1,mlx5_2,mlx5_3
+export NCCL_SOCKET_IFNAME=ib0
+export NCCL_IB_GID_INDEX=3
+export NCCL_DEBUG=WARN
 export NCCL_TIMEOUT=${NCCL_TIMEOUT:-1800}
-export NCCL_ASYNC_ERROR_HANDLING=1
+export TORCH_NCCL_ASYNC_ERROR_HANDLING=1
+export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
 
 # Stream-mode pre-featurization can take 30+ minutes loading per-chain .pt
 # files from a parallel filesystem before any collective is called. PyTorch
@@ -159,6 +161,7 @@ srun --ntasks-per-node="$SLURM_NTASKS_PER_NODE" \
         --save_model_every_n_epochs "${SAVE_EVERY:-5}" \
         --reload_data_every_n_epochs "${RELOAD_EVERY:-2}" \
         --max_protein_length        "${MAX_PROTEIN_LENGTH:-10000}" \
+        --lr_scale                  "${LR_SCALE:-1.0}" \
         --previous_checkpoint       "$RESUME_CKPT"
 TRAIN_RC=$?
 set -e

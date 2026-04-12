@@ -120,7 +120,7 @@ def main(args):
         total_step = 0
         epoch = 0
 
-    optimizer = get_std_opt(model.parameters(), args.hidden_dim, total_step)
+    optimizer = get_std_opt(model.parameters(), args.hidden_dim, total_step, args.lr_scale)
 
 
     if PATH:
@@ -468,6 +468,7 @@ if __name__ == "__main__":
     argparser.add_argument("--debug", type=bool, default=False, help="minimal data loading for debugging")
     argparser.add_argument("--gradient_norm", type=float, default=-1.0, help="clip gradient norm, set to negative to omit clipping")
     argparser.add_argument("--mixed_precision", type=bool, default=True, help="train with mixed precision")
+    argparser.add_argument("--lr_scale", type=float, default=1.0, help="multiplier on Noam LR factor (use <1 for fine-tuning resumes)")
 
     args = argparser.parse_args()
     main(args)
