@@ -2,19 +2,22 @@
 #SBATCH --job-name=mpnn_prod
 #SBATCH --partition=kempner_h100
 #SBATCH --account=kempner_bsabatini_lab
-#SBATCH --nodes=2
+#SBATCH --nodes=1
 #SBATCH --ntasks-per-node=4
 #SBATCH --gpus-per-node=4
 #SBATCH --cpus-per-task=4
 #SBATCH --mem=240G
-#SBATCH --time=72:00:00
+#SBATCH --time=24:00:00
 #SBATCH --output=/n/netscratch/bsabatini_lab/Users/bsabatini/proteinmpnn/logs/prod_%j.out
 #SBATCH --error=/n/netscratch/bsabatini_lab/Users/bsabatini/proteinmpnn/logs/prod_%j.err
 #SBATCH --mail-type=FAIL
 #SBATCH --mail-user=bsabatini@fas.harvard.edu
 
 # =============================================================================
-# Multi-node ProteinMPNN production training (default 2 nodes x 4 H100s).
+# ProteinMPNN production training (default 1 node x 4 H100s).
+# (2-node NCCL was unreliable; 1-node stays inside a single IB switch and
+#  avoids the inter-node heartbeat timeouts. sbatch --nodes=N can still
+#  override if multi-node ever becomes needed again.)
 #
 # Launch: srun spawns one Python process per GPU (--ntasks-per-node=4).
 # Each task reads SLURM_PROCID/SLURM_LOCALID/SLURM_NTASKS and calls
@@ -162,6 +165,8 @@ srun --ntasks-per-node="$SLURM_NTASKS_PER_NODE" \
         --reload_data_every_n_epochs "${RELOAD_EVERY:-2}" \
         --max_protein_length        "${MAX_PROTEIN_LENGTH:-10000}" \
         --lr_scale                  "${LR_SCALE:-1.0}" \
+        --mask_ratio                "${MASK_RATIO:-1.0}" \
+        --ss_rate                   "${SS_RATE:-0.0}" \
         --previous_checkpoint       "$RESUME_CKPT"
 TRAIN_RC=$?
 set -e
