@@ -210,22 +210,27 @@ for relaunch in "$JOBS_DIR"/*.sbatch.sh; do
       ;;
 
     TIMEOUT)
-      # train_production.sh is supposed to self-resubmit on timeout. Give
-      # it one monitor tick to show up under the same job-name; if nothing
-      # appears we resubmit manually.
+      # TIMEOUT is a scheduled event (24h wall-clock), not a failure. It
+      # does NOT count against RETRY_COUNT -- that budget is for genuine
+      # failure loops (OOM, NCCL, etc). If a bug causes fast-timeout looping
+      # the FAILED/OOM branches will catch that separately.
+      #
+      # train_production.sh's built-in self-resubmit doesn't fire on SLURM
+      # SIGKILL (batch script gets killed before the resubmit block), so
+      # "TIMEOUT handled by built-in chain" is mostly unreachable -- kept
+      # in case that logic is fixed later.
       NEW_JID=$(find_active_by_name "$JOB_NAME")
       if [ -n "$NEW_JID" ] && [ "$NEW_JID" != "$CURRENT_JOBID" ]; then
         log "$EXP_NAME: TIMEOUT handled by built-in chain -> $NEW_JID"
         CURRENT_JOBID=$NEW_JID
         LAST_STATE=PENDING
-      elif [ "$RETRY_COUNT" -lt "$MAX_RETRIES" ]; then
+      else
         log "$EXP_NAME: TIMEOUT without chain successor; manual resubmit"
         NEW_JID=$(bash "$relaunch" 2>>"$MLOG") || NEW_JID=""
         if [ -n "$NEW_JID" ]; then
           CURRENT_JOBID=$NEW_JID
-          RETRY_COUNT=$((RETRY_COUNT+1))
           LAST_STATE=PENDING
-          echo "Resubmitted $EXP_NAME after TIMEOUT: new JobID $NEW_JID (retry $RETRY_COUNT/$MAX_RETRIES)" \
+          echo "Resubmitted $EXP_NAME after TIMEOUT: new JobID $NEW_JID (retry budget unchanged $RETRY_COUNT/$MAX_RETRIES)" \
             | email "$EXP_NAME TIMEOUT resubmitted as $NEW_JID"
         fi
       fi
