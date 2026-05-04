@@ -102,7 +102,7 @@ def main():
     print(f'  Evaluating {len(proteins)} proteins')
 
     # Per-protein accuracies (each protein weighted equally regardless of length)
-    bins = [(0, 100), (100, 200), (200, 500), (500, 1000)]
+    bins = [(0, 100), (100, 200), (200, 500), (500, 1000), (1000, 2000), (2000, 10000)]
     bin_per_protein = {b: [] for b in bins}
     all_per_protein = []
 
